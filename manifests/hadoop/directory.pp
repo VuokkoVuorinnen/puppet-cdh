@@ -42,6 +42,12 @@ define cdh::hadoop::directory (
             unless  => "/usr/bin/hdfs dfs -test -e ${path}",
             user    => 'hdfs',
         }
+        exec { "cdh::hadoop::directory set-permissions ${title}":
+            command => "/usr/bin/hdfs dfs -chmod ${mode} ${path}",
+            unless  => "/usr/bin/hdfs dfs -ls -d -h ${path} | /bin/awk '{k = 0; for (g=2; g>=0; g--) for (p=2; p>=0; p--) {c = substr(\$1, 10 - (g * 3 + p), 1); if (c ~ /[sS]/) k += g * 02000; else if (c ~ /[tT]/) k += 01000; if (c ~ /[rwxts]/) k += 8^g * 2^p} if (k) printf(\"%05o \", k)}' | /bin/sed 's/.//' | /bin/grep '${mode}'",
+            user    => 'hdfs',
+            require => Exec["cdh::hadoop::directory ${title}"],
+        }
     }
     else {
         exec { "cdh::hadoop::directory ${title}":
